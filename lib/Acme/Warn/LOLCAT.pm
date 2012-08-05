@@ -4,9 +4,23 @@ use strict;
 use warnings;
 use Acme::LOLCAT qw(translate);
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
-*CORE::GLOBAL::warn = sub { CORE::warn(translate(@_)) };
+# Intrusive lolcat is intrusive
+no warnings 'redefine';
+*CORE::GLOBAL::warn =
+$main::SIG{__WARN__} = sub{
+    my $message = shift || "Warning: something's wrong";
+
+    my (undef, $file, $line) = caller(0);
+    $message .= " at $file line $line\n" unless ($message =~ /\n$/);
+
+    $message = translate($message);
+    $message =~ s/\n\.  KTHXBYE!//g;
+    $message =~ s/\n\.  KTHX.//g;
+
+    CORE::warn($message);
+};
 
 1;
 
